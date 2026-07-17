@@ -68,7 +68,7 @@ type UploadResponse = {
   job: JobItem;
 };
 
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://proton-backend-dn83.onrender.com";
 const minioBrowserBaseUrl =
   process.env.NEXT_PUBLIC_MINIO_BROWSER_BASE_URL ?? "http://localhost:9001/browser/uploads";
 const apiKey = process.env.NEXT_PUBLIC_DEMO_API_KEY ?? "demo-api-key-12345678";
