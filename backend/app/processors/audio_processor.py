@@ -4,9 +4,9 @@ import subprocess
 from pathlib import Path
 from time import perf_counter
 
-from worker.processors.base_processor import BaseProcessor
-from worker.services.analyzers.audio_analyzer import AudioAnalyzer
-from worker.services.fallback import keep_original_if_larger
+from app.processors.base_processor import BaseProcessor
+from app.services.analyzers.audio_analyzer import AudioAnalyzer
+from app.services.fallback import keep_original_if_larger
 
 
 class AudioProcessor(BaseProcessor):

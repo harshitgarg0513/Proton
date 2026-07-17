@@ -7,9 +7,9 @@ from time import perf_counter
 import fitz
 from PIL import Image
 
-from worker.processors.base_processor import BaseProcessor
-from worker.services.analyzers.pdf_analyzer import PdfAnalyzer
-from worker.services.fallback import keep_original_if_larger
+from app.processors.base_processor import BaseProcessor
+from app.services.analyzers.pdf_analyzer import PdfAnalyzer
+from app.services.fallback import keep_original_if_larger
 
 
 class PdfProcessor(BaseProcessor):

@@ -6,13 +6,13 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from time import perf_counter
 
-from worker.processors.base_processor import BaseProcessor
-from worker.services.analyzers.video_analyzer import VideoAnalyzer
-from worker.services.benchmarking.video_benchmark import VideoBenchmarkEngine
-from worker.services.chunking.video_chunker import VideoChunker
-from worker.services.quality.video_quality import VideoQualityMetric
-from worker.services.fallback import keep_original_if_larger
-from worker.services.strategy_engine import OptimizationStrategy, VideoOptimizationPlan, crf_for_codec, ffmpeg_codec_for, resolve_video_plan
+from app.processors.base_processor import BaseProcessor
+from app.services.analyzers.video_analyzer import VideoAnalyzer
+from app.services.benchmarking.video_benchmark import VideoBenchmarkEngine
+from app.services.chunking.video_chunker import VideoChunker
+from app.services.quality.video_quality import VideoQualityMetric
+from app.services.fallback import keep_original_if_larger
+from app.services.strategy_engine import OptimizationStrategy, VideoOptimizationPlan, crf_for_codec, ffmpeg_codec_for, resolve_video_plan
 
 
 @dataclass(frozen=True)

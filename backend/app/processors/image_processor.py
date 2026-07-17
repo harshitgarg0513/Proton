@@ -5,11 +5,11 @@ from pathlib import Path
 from time import perf_counter
 
 from PIL import Image, ImageOps
-from worker.processors.base_processor import BaseProcessor
-from worker.services.analyzers.image_analyzer import ImageAnalyzer
-from worker.services.quality.image_quality import ImageQualityMetric
-from worker.services.strategy_engine import OptimizationStrategy
-from worker.services.fallback import keep_original_if_larger
+from app.processors.base_processor import BaseProcessor
+from app.services.analyzers.image_analyzer import ImageAnalyzer
+from app.services.quality.image_quality import ImageQualityMetric
+from app.services.strategy_engine import OptimizationStrategy
+from app.services.fallback import keep_original_if_larger
 
 
 @dataclass(frozen=True)
