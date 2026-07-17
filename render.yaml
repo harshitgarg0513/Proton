@@ -28,29 +28,3 @@ services:
         value: redis://default:gQAAAAAAAqnFAAIgcDFkZWYzOTM1OGI2NDE0MTY4YmU0NzhkMjFmNTk4NWMyNQ@still-adder-174533.upstash.io:6379
       - key: CORS_ORIGINS
         value: https://protonware.vercel.app,https://protonware-hzsc8jv2g-harshit-gargs-projects-5142d5a3.vercel.app
-
-  - type: worker
-    name: proton-worker
-    env: python
-    plan: free
-    buildCommand: pip install -r backend/requirements.txt
-    startCommand: cd backend && celery -A worker.main:celery_app worker -Q compression -l info --concurrency=2
-    envVars:
-      - key: APP_NAME
-        value: Proton API
-      - key: DATABASE_URL
-        value: postgresql://neondb_owner:npg_WAcSB9L8FmaP@ep-proud-leaf-aznsnifo.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
-      - key: STORAGE_ENDPOINT
-        value: e66f3df41676f7a9fe1669951e3c2213.r2.cloudflarestorage.com
-      - key: STORAGE_ACCESS_KEY
-        value: 26e87984293cc979e6c425a6ca9b5851
-      - key: STORAGE_SECRET_KEY
-        value: f0478f1c1446d773568f9be9af39c59386a26542eb6268522cf30b6ceb3101e2
-      - key: STORAGE_BUCKET
-        value: proton
-      - key: STORAGE_SECURE
-        value: "true"
-      - key: STORAGE_REGION
-        value: auto
-      - key: REDIS_URL
-        value: redis://default:gQAAAAAAAqnFAAIgcDFkZWYzOTM1OGI2NDE0MTY4YmU0NzhkMjFmNTk4NWMyNQ@still-adder-174533.upstash.io:6379
