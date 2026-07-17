@@ -4,7 +4,7 @@ services:
     env: python
     plan: free
     buildCommand: pip install -r backend/requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: APP_NAME
         value: Proton API
@@ -29,13 +29,12 @@ services:
       - key: CORS_ORIGINS
         value: https://protonware.vercel.app,https://protonware-hzsc8jv2g-harshit-gargs-projects-5142d5a3.vercel.app
 
-workers:
   - type: worker
     name: proton-worker
     env: python
     plan: free
     buildCommand: pip install -r backend/requirements.txt
-    startCommand: celery -A worker.main:celery_app worker -Q compression -l info --concurrency=2
+    startCommand: cd backend && celery -A worker.main:celery_app worker -Q compression -l info --concurrency=2
     envVars:
       - key: APP_NAME
         value: Proton API
