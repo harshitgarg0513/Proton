@@ -3,12 +3,9 @@ services:
     name: proton-backend
     env: python
     plan: free
-    runtime: python3.12
     buildCommand: pip install -r backend/requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
-      - key: PYTHONPATH
-        value: /opt/render/project/backend
       - key: APP_NAME
         value: Proton API
       - key: API_PREFIX
@@ -37,12 +34,9 @@ workers:
     name: proton-worker
     env: python
     plan: free
-    runtime: python3.12
     buildCommand: pip install -r backend/requirements.txt
     startCommand: celery -A worker.main:celery_app worker -Q compression -l info --concurrency=2
     envVars:
-      - key: PYTHONPATH
-        value: /opt/render/project/backend:/opt/render/project/worker
       - key: APP_NAME
         value: Proton API
       - key: DATABASE_URL
