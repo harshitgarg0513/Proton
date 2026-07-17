@@ -14,8 +14,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Adaptive Content Platform - Transform Your Media",
-  description: "Advanced file upload and compression platform with real-time processing, smart optimization, and beautiful analytics.",
+  title: "Proton — Adaptive Media Compression",
+  description:
+    "Upload media, analyze content characteristics, and apply rules-based optimization to shrink files while preserving quality — with real-time processing insights.",
+};
+
+export const viewport = {
+  themeColor: "#0e1420",
 };
 
 export default function RootLayout({
@@ -26,9 +31,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`dark ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-background text-foreground flex flex-col">
+      <body className="min-h-full bg-background text-foreground flex flex-col font-sans">
         <Providers>{children}</Providers>
       </body>
     </html>

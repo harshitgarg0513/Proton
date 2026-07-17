@@ -3,13 +3,18 @@
 import axios from "axios";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  Activity,
   AlertCircle,
+  Atom,
   CheckCircle2,
   Clock3,
   CloudUpload,
   ExternalLink,
   FileText,
+  Gauge,
+  Layers,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";
@@ -119,16 +124,16 @@ function formatBytes(bytes: number) {
 function statusTone(status: string) {
   switch (status.toLowerCase()) {
     case "completed":
-      return "bg-emerald-500/10 text-emerald-700";
+      return "bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/25";
     case "failed":
-      return "bg-rose-500/10 text-rose-700";
+      return "bg-rose-500/15 text-rose-300 ring-1 ring-rose-500/25";
     case "processing":
-      return "bg-blue-500/10 text-blue-700";
+      return "bg-primary/15 text-primary ring-1 ring-primary/25";
     case "retrying":
     case "pending":
-      return "bg-amber-500/10 text-amber-700";
+      return "bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/25";
     default:
-      return "bg-slate-500/10 text-slate-700";
+      return "bg-muted text-muted-foreground ring-1 ring-border";
   }
 }
 
@@ -429,82 +434,155 @@ export function UploadDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6 px-4 py-6 md:px-8 lg:px-10">
-        <header className="flex flex-col gap-2 border-b">
-          <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
-            Adaptive Content Platform
-          </p>
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-            Content Upload and Processing
-          </h1>
-          <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
-            Upload files into MinIO, enqueue compression jobs, and monitor worker progress in real time.
-          </p>
+    <div className="relative min-h-screen bg-background">
+      <div className="proton-aurora pointer-events-none absolute inset-x-0 top-0 h-[420px]" />
+      <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-10 px-4 py-10 md:px-8 lg:px-10">
+        <header className="flex flex-col gap-8">
+          <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 ring-1 ring-primary/30">
+                <Atom className="h-6 w-6" />
+              </div>
+              <div className="leading-tight">
+                <p className="text-lg font-semibold tracking-tight text-foreground">Proton</p>
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                  Adaptive Compression
+                </p>
+              </div>
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3.5 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/70" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+              </span>
+              Live worker stream
+            </div>
+          </div>
+
+          <div className="max-w-3xl space-y-4">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+              <Sparkles className="h-3.5 w-3.5" />
+              Rules-based media optimization
+            </span>
+            <h1 className="text-balance text-4xl font-semibold leading-[1.05] tracking-tight text-foreground md:text-5xl">
+              Compress smarter with{" "}
+              <span className="text-gradient">content-aware</span> optimization
+            </h1>
+            <p className="max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground">
+              Upload images, video, audio, or PDFs. Proton analyzes each file&apos;s
+              characteristics, picks the right codec and settings, and streams
+              real-time progress as your media is compressed.
+            </p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            {[
+              {
+                icon: Gauge,
+                title: "Content analysis",
+                desc: "Motion, entropy & bitrate signals",
+              },
+              {
+                icon: Layers,
+                title: "Optimization profiles",
+                desc: "From smallest size to best quality",
+              },
+              {
+                icon: Activity,
+                title: "Real-time progress",
+                desc: "Live updates over Server-Sent Events",
+              },
+            ].map((feature) => (
+              <div
+                key={feature.title}
+                className="flex items-start gap-3 rounded-2xl border border-border bg-card/50 p-4 backdrop-blur transition-colors hover:border-primary/40"
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+                  <feature.icon className="h-4.5 w-4.5" />
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-sm font-medium text-foreground">{feature.title}</p>
+                  <p className="text-xs leading-relaxed text-muted-foreground">{feature.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </header>
 
-        <main className="grid flex-1 gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+        <main className="grid flex-1 items-start gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <Card>
+            <Card className="overflow-hidden rounded-3xl border-border/80 bg-card/70 shadow-xl shadow-black/20 backdrop-blur">
               <CardHeader>
-                <CardTitle>Upload Section</CardTitle>
-                <CardDescription>Drag and drop a file, then choose an optimization profile.</CardDescription>
+                <CardTitle className="text-xl">Upload &amp; optimize</CardTitle>
+                <CardDescription>Drop a file, pick a profile, and queue it for compression.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-5">
+              <CardContent className="space-y-6">
                 <div
                   {...getRootProps()}
                   className={cn(
-                    "flex min-h-56 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-6 py-8 text-center transition-colors",
+                    "group relative flex min-h-60 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed px-6 py-10 text-center transition-all",
                     isDragActive
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:bg-muted/50",
+                      ? "border-primary bg-primary/10"
+                      : "border-border hover:border-primary/50 hover:bg-muted/40",
                   )}
                 >
                   <input {...getInputProps()} />
-                  <CloudUpload className="mb-3 h-10 w-10 text-muted-foreground" />
-                  <p className="text-base font-medium text-foreground">
-                    {isDragActive ? "Drop the file here" : "Drag and drop a file here"}
+                  <div
+                    className={cn(
+                      "mb-4 flex h-16 w-16 items-center justify-center rounded-2xl transition-all",
+                      isDragActive
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-accent text-accent-foreground group-hover:scale-105",
+                    )}
+                  >
+                    <CloudUpload className="h-8 w-8" />
+                  </div>
+                  <p className="text-base font-semibold text-foreground">
+                    {isDragActive ? "Drop the file to upload" : "Drag & drop a file here"}
                   </p>
-                  <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-                    The file is uploaded to FastAPI, stored in MinIO, and queued for the worker.
+                  <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">
+                    or <span className="font-medium text-primary">browse</span> — images, video, audio & PDFs supported.
                   </p>
                 </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium text-foreground">Optimization profile</span>
-                  <span className="text-muted-foreground">Phase 2 input</span>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                    {selectedProfile.replaceAll("_", " ")}
+                  </span>
                 </div>
                 <Tabs value={selectedProfile} onValueChange={(value) => setSelectedProfile(value as OptimizationProfile)}>
-                  <TabsList className="w-full justify-between">
-                    <TabsTrigger value="smallest_size">smallest_size</TabsTrigger>
-                    <TabsTrigger value="balanced">balanced</TabsTrigger>
-                    <TabsTrigger value="best_quality">best_quality</TabsTrigger>
-                    <TabsTrigger value="web_optimized">web_optimized</TabsTrigger>
+                  <TabsList className="grid h-auto w-full grid-cols-2 gap-1 sm:grid-cols-4">
+                    <TabsTrigger value="smallest_size" className="text-xs">Smallest</TabsTrigger>
+                    <TabsTrigger value="balanced" className="text-xs">Balanced</TabsTrigger>
+                    <TabsTrigger value="best_quality" className="text-xs">Best quality</TabsTrigger>
+                    <TabsTrigger value="web_optimized" className="text-xs">Web</TabsTrigger>
                   </TabsList>
                 </Tabs>
               </div>
 
               {preview ? (
-                <div className="rounded-lg border bg-background p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="rounded-lg bg-muted p-2">
-                      <FileText className="h-5 w-5 text-foreground" />
+                <div className="rounded-2xl border border-border bg-muted/30 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                      <FileText className="h-5 w-5" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium text-foreground">{preview.name}</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {preview.type} · {preview.size}
                       </p>
                     </div>
+                    <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-400" />
                   </div>
                 </div>
               ) : (
-                <div className="rounded-lg border border-dashed px-4 py-5 text-sm text-muted-foreground">
+                <div className="rounded-2xl border border-dashed border-border/70 px-4 py-5 text-center text-sm text-muted-foreground">
                   No file selected yet.
                 </div>
               )}
@@ -517,8 +595,13 @@ export function UploadDashboard() {
                 <Progress value={uploadProgress} className="h-2" />
               </div>
 
-              <div className="flex items-center gap-3">
-                <Button onClick={handleUpload} disabled={!selectedFile || uploadState === "uploading"}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <Button
+                  onClick={handleUpload}
+                  disabled={!selectedFile || uploadState === "uploading"}
+                  size="lg"
+                  className="w-full shadow-lg shadow-primary/20 sm:w-auto"
+                >
                   {uploadState === "uploading" ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -526,8 +609,8 @@ export function UploadDashboard() {
                     </>
                   ) : (
                     <>
-                      <FileText className="h-4 w-4" />
-                      Upload file
+                      <CloudUpload className="h-4 w-4" />
+                      Upload & compress
                     </>
                   )}
                 </Button>
@@ -535,9 +618,10 @@ export function UploadDashboard() {
                 <p
                   className={cn(
                     "text-sm",
-                    uploadState === "done" && "text-emerald-600",
-                    uploadState === "error" && "text-rose-600",
+                    uploadState === "done" && "text-emerald-400",
+                    uploadState === "error" && "text-rose-400",
                     uploadState === "idle" && "text-muted-foreground",
+                    uploadState === "uploading" && "text-muted-foreground",
                   )}
                 >
                   {uploadState === "done"
@@ -556,13 +640,13 @@ export function UploadDashboard() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-          <Card>
+          <Card className="overflow-hidden rounded-3xl border-border/80 bg-card/70 shadow-xl shadow-black/20 backdrop-blur">
             <CardHeader>
-              <CardTitle>Job Status List</CardTitle>
+              <CardTitle className="text-xl">Jobs &amp; insights</CardTitle>
               <CardDescription>Live status from FastAPI and the Celery worker.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {jobs.length > 0 ? (
                   jobs.map((job) => (
                     <button
@@ -570,10 +654,10 @@ export function UploadDashboard() {
                       type="button"
                       onClick={() => setSelectedJobId(job.id)}
                       className={cn(
-                        "flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left transition-colors",
+                        "flex w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left transition-all",
                         selectedJobId === job.id
-                          ? "border-primary bg-primary/5"
-                          : "border-border bg-background hover:bg-muted/40",
+                          ? "border-primary/60 bg-primary/10 ring-1 ring-primary/20"
+                          : "border-border bg-muted/20 hover:border-primary/40 hover:bg-muted/40",
                       )}
                     >
                       <div className="min-w-0">
@@ -725,7 +809,7 @@ export function UploadDashboard() {
                     ) : null}
 
                     {selectedJob.error_message ? (
-                      <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+                      <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">
                         {selectedJob.error_message}
                       </div>
                     ) : null}
