@@ -2,27 +2,32 @@ from functools import lru_cache
 from pathlib import Path
 from uuid import uuid4
 
-from minio import Minio
+import boto3
+from botocore.client import Config
 from starlette.datastructures import UploadFile
 
 from app.core.config import get_settings
 
 
-class MinioStorageService:
+class S3StorageService:
     def __init__(self) -> None:
         settings = get_settings()
-        self.bucket_name = settings.minio_bucket
-        self.client = Minio(
-            settings.minio_endpoint,
-            access_key=settings.minio_access_key,
-            secret_key=settings.minio_secret_key,
-            secure=settings.minio_secure,
+        self.bucket_name = settings.storage_bucket
+        self.client = boto3.client(
+            's3',
+            endpoint_url=f"https://{settings.storage_endpoint}" if settings.storage_secure else f"http://{settings.storage_endpoint}",
+            aws_access_key_id=settings.storage_access_key,
+            aws_secret_access_key=settings.storage_secret_key,
+            region_name=settings.storage_region,
+            config=Config(signature_version='s3v4'),
         )
         self.ensure_bucket_exists()
 
     def ensure_bucket_exists(self) -> None:
-        if not self.client.bucket_exists(self.bucket_name):
-            self.client.make_bucket(self.bucket_name)
+        try:
+            self.client.head_bucket(Bucket=self.bucket_name)
+        except Exception:
+            self.client.create_bucket(Bucket=self.bucket_name)
 
     def build_storage_path(self, folder: str, filename: str) -> str:
         safe_name = Path(filename).name or "upload.bin"
@@ -30,40 +35,25 @@ class MinioStorageService:
 
     def upload_file(self, upload_file: UploadFile, storage_path: str, content_type: str | None = None) -> None:
         upload_file.file.seek(0)
-        self.client.put_object(
+        self.client.upload_fileobj(
+            upload_file.file,
             self.bucket_name,
             storage_path,
-            upload_file.file,
-            length=-1,
-            part_size=10 * 1024 * 1024,
-            content_type=content_type or upload_file.content_type or "application/octet-stream",
+            ExtraArgs={'ContentType': content_type or upload_file.content_type or "application/octet-stream"},
         )
 
     def upload_local_file(self, local_path: str, storage_path: str, content_type: str) -> None:
-        with open(local_path, "rb") as file_handle:
-            file_handle.seek(0, 2)
-            file_size = file_handle.tell()
-            file_handle.seek(0)
-            self.client.put_object(
-                self.bucket_name,
-                storage_path,
-                file_handle,
-                length=file_size,
-                part_size=10 * 1024 * 1024,
-                content_type=content_type,
-            )
+        self.client.upload_file(
+            local_path,
+            self.bucket_name,
+            storage_path,
+            ExtraArgs={'ContentType': content_type},
+        )
 
     def download_file(self, storage_path: str, destination_path: str) -> None:
-        response = self.client.get_object(self.bucket_name, storage_path)
-        try:
-            with open(destination_path, "wb") as file_handle:
-                for chunk in response.stream(32 * 1024):
-                    file_handle.write(chunk)
-        finally:
-            response.close()
-            response.release_conn()
+        self.client.download_file(self.bucket_name, storage_path, destination_path)
 
 
 @lru_cache(maxsize=1)
-def get_storage_service() -> MinioStorageService:
-    return MinioStorageService()
+def get_storage_service() -> S3StorageService:
+    return S3StorageService()

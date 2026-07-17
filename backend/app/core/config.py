@@ -14,11 +14,13 @@ class Settings:
         "DATABASE_URL",
         "postgresql+psycopg2://postgres:postgres@postgres:5432/proton",
     )
-    minio_endpoint: str = os.getenv("MINIO_ENDPOINT", "minio:9000")
-    minio_access_key: str = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
-    minio_secret_key: str = os.getenv("MINIO_SECRET_KEY", "minioadmin")
-    minio_bucket: str = os.getenv("MINIO_BUCKET", "uploads")
-    minio_secure: bool = os.getenv("MINIO_SECURE", "false").lower() == "true"
+    # Storage configuration (S3-compatible for Cloudflare R2)
+    storage_endpoint: str = os.getenv("STORAGE_ENDPOINT", "minio:9000")
+    storage_access_key: str = os.getenv("STORAGE_ACCESS_KEY", "minioadmin")
+    storage_secret_key: str = os.getenv("STORAGE_SECRET_KEY", "minioadmin")
+    storage_bucket: str = os.getenv("STORAGE_BUCKET", "uploads")
+    storage_secure: bool = os.getenv("STORAGE_SECURE", "false").lower() == "true"
+    storage_region: str = os.getenv("STORAGE_REGION", "auto")
     redis_url: str = os.getenv("REDIS_URL", "redis://redis:6379/0")
     cors_origins: tuple[str, ...] = _split_csv(
         os.getenv("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
