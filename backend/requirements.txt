@@ -7,7 +7,6 @@ psycopg2-binary==2.9.12
 celery==5.6.3
 redis==8.0.0
 pillow==12.2.0
-pyheif==0.8.0
 pymupdf==1.27.2.3
 scikit-image==0.26.0
 opencv-python-headless==4.13.0.92
