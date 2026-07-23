@@ -406,7 +406,6 @@ export function UploadDashboard() {
 
       const response = await axios.post<UploadResponse>(`${apiBaseUrl}/api/files/upload`, formData, {
         headers: { 
-          "Content-Type": "multipart/form-data",
           "X-API-Key": apiKey,
         },
         onUploadProgress: (event) => {
