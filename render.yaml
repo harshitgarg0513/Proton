@@ -27,4 +27,5 @@ services:
       - key: REDIS_URL
         value: redis://default:gQAAAAAAAqnFAAIgcDFkZWYzOTM1OGI2NDE0MTY4YmU0NzhkMjFmNTk4NWMyNQ@still-adder-174533.upstash.io:6379
       - key: CORS_ORIGINS
-        value: https://protonware.vercel.app,https://protonware-hzsc8jv2g-harshit-gargs-projects-5142d5a3.vercel.app
+        value: https://proton-delta-pied.vercel.app,https://protonware.vercel.app,https://protonware-hzsc8jv2g-harshit-gargs-projects-5142d5a3.vercel.app
+
