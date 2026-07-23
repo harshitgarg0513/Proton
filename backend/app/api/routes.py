@@ -3,7 +3,7 @@ import json
 from collections.abc import AsyncIterator
 from typing import Final
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -130,6 +130,7 @@ def _validate_upload_file(file: UploadFile, max_size_bytes: int) -> str:
 
 @router.post("/files/upload", response_model=UploadResponse, status_code=status.HTTP_201_CREATED)
 def upload_file(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     profile: str = Form("balanced"),
     owner: str = Depends(get_current_owner),
@@ -165,7 +166,7 @@ def upload_file(
         db.refresh(file_record)
         db.refresh(job)
 
-        dispatch_compression_job(job.id)
+        background_tasks.add_task(dispatch_compression_job, job.id)
 
         return {
             "file": file_record,

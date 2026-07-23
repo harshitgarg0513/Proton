@@ -13,9 +13,13 @@ class S3StorageService:
     def __init__(self) -> None:
         settings = get_settings()
         self.bucket_name = settings.storage_bucket
+        endpoint_url = settings.storage_endpoint
+        if not endpoint_url.startswith("http://") and not endpoint_url.startswith("https://"):
+            endpoint_url = f"https://{endpoint_url}" if settings.storage_secure else f"http://{endpoint_url}"
+
         self.client = boto3.client(
             's3',
-            endpoint_url=f"https://{settings.storage_endpoint}" if settings.storage_secure else f"http://{settings.storage_endpoint}",
+            endpoint_url=endpoint_url,
             aws_access_key_id=settings.storage_access_key,
             aws_secret_access_key=settings.storage_secret_key,
             region_name=settings.storage_region,
@@ -27,7 +31,11 @@ class S3StorageService:
         try:
             self.client.head_bucket(Bucket=self.bucket_name)
         except Exception:
-            self.client.create_bucket(Bucket=self.bucket_name)
+            try:
+                self.client.create_bucket(Bucket=self.bucket_name)
+            except Exception:
+                # Cloudflare R2 buckets are pre-created in dashboard and object-level tokens don't support bucket management APIs
+                pass
 
     def build_storage_path(self, folder: str, filename: str) -> str:
         safe_name = Path(filename).name or "upload.bin"
