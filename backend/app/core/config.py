@@ -25,7 +25,7 @@ class Settings:
     cors_origins: tuple[str, ...] = _split_csv(
         os.getenv("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
     )
-    max_upload_size_bytes: int = int(os.getenv("MAX_UPLOAD_SIZE_BYTES", str(25 * 1024 * 1024)))
+    max_upload_size_bytes: int = int(os.getenv("MAX_UPLOAD_SIZE_BYTES", str(500 * 1024 * 1024)))
 
 
 _settings = Settings()

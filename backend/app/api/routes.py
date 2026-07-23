@@ -28,10 +28,15 @@ ALLOWED_UPLOAD_TYPES: Final[set[str]] = {
     "application/pdf",
     "video/mp4",
     "video/webm",
+    "video/quicktime",
+    "video/x-matroska",
     "audio/mpeg",
     "audio/wav",
     "audio/ogg",
     "audio/mp4",
+    "audio/flac",
+    "audio/aac",
+    "audio/x-m4a",
 }
 
 router = APIRouter(prefix=settings.api_prefix)
@@ -47,33 +52,68 @@ def _get_upload_size(file: UploadFile) -> int:
 
 
 def _detect_file_type(file: UploadFile) -> str:
-    stream = file.file
-    current_position = stream.tell()
-    stream.seek(0)
-    header = stream.read(512)
-    stream.seek(current_position)
+    try:
+        stream = file.file
+        current_position = stream.tell()
+        stream.seek(0)
+        header = stream.read(512)
+        stream.seek(current_position)
 
-    if header.startswith(b"\xff\xd8\xff"):
-        return "image/jpeg"
-    if header.startswith(b"\x89PNG\r\n\x1a\n"):
-        return "image/png"
-    if header.startswith(b"RIFF") and b"WEBP" in header[:12]:
-        return "image/webp"
-    if header.startswith(b"ftyp") or b"ftyp" in header[:32]:
-        if b"avif" in header.lower():
-            return "image/avif"
-        return "video/mp4"
-    if header.startswith(b"%PDF-"):
-        return "application/pdf"
-    if header.startswith(b"ID3") or header.startswith((b"\xff\xfb", b"\xff\xf3", b"\xff\xf2")):
-        return "audio/mpeg"
-    if header.startswith(b"RIFF") and b"WAVE" in header[8:16]:
-        return "audio/wav"
-    if header.startswith(b"OggS"):
-        return "audio/ogg"
-    if header.startswith(b"\x1aE\xdf\xa3"):
-        return "video/webm"
-    raise ValueError("Unsupported or unrecognized file type")
+        if header.startswith(b"\xff\xd8\xff"):
+            return "image/jpeg"
+        if header.startswith(b"\x89PNG\r\n\x1a\n"):
+            return "image/png"
+        if header.startswith(b"RIFF") and b"WEBP" in header[:12]:
+            return "image/webp"
+        if header.startswith(b"ftyp") or b"ftyp" in header[:32]:
+            if b"avif" in header.lower():
+                return "image/avif"
+            if b"M4A " in header or b"mp42" in header:
+                return "audio/mp4"
+            return "video/mp4"
+        if header.startswith(b"%PDF-"):
+            return "application/pdf"
+        if header.startswith(b"ID3") or header.startswith((b"\xff\xfb", b"\xff\xf3", b"\xff\xf2")):
+            return "audio/mpeg"
+        if header.startswith(b"RIFF") and b"WAVE" in header[8:16]:
+            return "audio/wav"
+        if header.startswith(b"OggS"):
+            return "audio/ogg"
+        if header.startswith(b"\x1aE\xdf\xa3"):
+            return "video/webm"
+        if header.startswith(b"fLaC"):
+            return "audio/flac"
+    except Exception:
+        pass
+
+    content_type = (file.content_type or "").lower()
+    if content_type in ALLOWED_UPLOAD_TYPES:
+        return content_type
+
+    filename = (file.filename or "").lower()
+    ext_map = {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".webp": "image/webp",
+        ".avif": "image/avif",
+        ".pdf": "application/pdf",
+        ".mp4": "video/mp4",
+        ".mov": "video/quicktime",
+        ".mkv": "video/x-matroska",
+        ".webm": "video/webm",
+        ".mp3": "audio/mpeg",
+        ".wav": "audio/wav",
+        ".ogg": "audio/ogg",
+        ".m4a": "audio/mp4",
+        ".aac": "audio/aac",
+        ".flac": "audio/flac",
+    }
+    for ext, mime in ext_map.items():
+        if filename.endswith(ext):
+            return mime
+
+    raise ValueError(f"Unsupported file format for {file.filename or 'uploaded file'}")
 
 
 def _validate_upload_file(file: UploadFile, max_size_bytes: int) -> str:
