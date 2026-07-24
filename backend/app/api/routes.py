@@ -48,46 +48,58 @@ router = APIRouter(prefix=settings.api_prefix)
 
 
 def _get_upload_size(file: UploadFile) -> int:
-    stream = file.file
-    current_position = stream.tell()
-    stream.seek(0, 2)
-    size = stream.tell()
-    stream.seek(current_position)
-    return size
+    try:
+        if hasattr(file, "size") and file.size is not None and file.size > 0:
+            return file.size
+    except Exception:
+        pass
+
+    try:
+        stream = file.file
+        if getattr(stream, "closed", False):
+            return 0
+        current_position = stream.tell()
+        stream.seek(0, 2)
+        size = stream.tell()
+        stream.seek(current_position)
+        return size
+    except Exception:
+        return 0
 
 
 def _detect_file_type(file: UploadFile) -> str:
     try:
         stream = file.file
-        current_position = stream.tell()
-        stream.seek(0)
-        header = stream.read(512)
-        stream.seek(current_position)
+        if not getattr(stream, "closed", False):
+            current_position = stream.tell()
+            stream.seek(0)
+            header = stream.read(512)
+            stream.seek(current_position)
 
-        if header.startswith(b"\xff\xd8\xff"):
-            return "image/jpeg"
-        if header.startswith(b"\x89PNG\r\n\x1a\n"):
-            return "image/png"
-        if header.startswith(b"RIFF") and b"WEBP" in header[:12]:
-            return "image/webp"
-        if header.startswith(b"ftyp") or b"ftyp" in header[:32]:
-            if b"avif" in header.lower():
-                return "image/avif"
-            if b"M4A " in header or b"mp42" in header:
-                return "audio/mp4"
-            return "video/mp4"
-        if header.startswith(b"%PDF-"):
-            return "application/pdf"
-        if header.startswith(b"ID3") or header.startswith((b"\xff\xfb", b"\xff\xf3", b"\xff\xf2")):
-            return "audio/mpeg"
-        if header.startswith(b"RIFF") and b"WAVE" in header[8:16]:
-            return "audio/wav"
-        if header.startswith(b"OggS"):
-            return "audio/ogg"
-        if header.startswith(b"\x1aE\xdf\xa3"):
-            return "video/webm"
-        if header.startswith(b"fLaC"):
-            return "audio/flac"
+            if header.startswith(b"\xff\xd8\xff"):
+                return "image/jpeg"
+            if header.startswith(b"\x89PNG\r\n\x1a\n"):
+                return "image/png"
+            if header.startswith(b"RIFF") and b"WEBP" in header[:12]:
+                return "image/webp"
+            if header.startswith(b"ftyp") or b"ftyp" in header[:32]:
+                if b"avif" in header.lower():
+                    return "image/avif"
+                if b"M4A " in header or b"mp42" in header:
+                    return "audio/mp4"
+                return "video/mp4"
+            if header.startswith(b"%PDF-"):
+                return "application/pdf"
+            if header.startswith(b"ID3") or header.startswith((b"\xff\xfb", b"\xff\xf3", b"\xff\xf2")):
+                return "audio/mpeg"
+            if header.startswith(b"RIFF") and b"WAVE" in header[8:16]:
+                return "audio/wav"
+            if header.startswith(b"OggS"):
+                return "audio/ogg"
+            if header.startswith(b"\x1aE\xdf\xa3"):
+                return "video/webm"
+            if header.startswith(b"fLaC"):
+                return "audio/flac"
     except Exception:
         pass
 
@@ -121,12 +133,11 @@ def _detect_file_type(file: UploadFile) -> str:
     raise ValueError(f"Unsupported file format for {file.filename or 'uploaded file'}")
 
 
-def _validate_upload_file(file: UploadFile, max_size_bytes: int) -> str:
+def _validate_upload_file(file: UploadFile, size: int, max_size_bytes: int) -> str:
     detected_type = _detect_file_type(file)
     if detected_type not in ALLOWED_UPLOAD_TYPES:
         raise ValueError("Unsupported file type")
 
-    size = _get_upload_size(file)
     if size > max_size_bytes:
         raise ValueError("File exceeds the configured upload size limit")
 
@@ -142,7 +153,8 @@ def upload_file(
     db: Session = Depends(get_db),
 ):
     try:
-        detected_type = _validate_upload_file(file, settings.max_upload_size_bytes)
+        file_size = _get_upload_size(file)
+        detected_type = _validate_upload_file(file, file_size, settings.max_upload_size_bytes)
         storage_service = get_storage_service()
         storage_path = storage_service.build_storage_path("original", file.filename or "upload.bin")
         storage_service.upload_file(file, storage_path, content_type=detected_type)
@@ -150,7 +162,7 @@ def upload_file(
         file_record = FileRecord(
             owner_id=owner,
             filename=file.filename or "upload.bin",
-            original_size=_get_upload_size(file),
+            original_size=file_size,
             mime_type=detected_type,
             storage_path=storage_path,
             upload_status="uploaded",
