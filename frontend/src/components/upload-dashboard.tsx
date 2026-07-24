@@ -197,8 +197,13 @@ function formatPercent(value: unknown) {
   return "-";
 }
 
-function minioObjectUrl(storagePath: string) {
-  return `${minioBrowserBaseUrl}/${storagePath}`;
+function getObjectUrl(storagePath?: string | null): string {
+  if (!storagePath || storagePath.trim() === "") return "";
+  return `${apiBaseUrl}/api/files/view?path=${encodeURIComponent(storagePath)}&api_key=${encodeURIComponent(apiKey)}`;
+}
+
+function minioObjectUrl(storagePath: string): string {
+  return getObjectUrl(storagePath);
 }
 
 function isTerminalJobStatus(status: string) {
