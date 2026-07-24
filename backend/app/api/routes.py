@@ -263,6 +263,31 @@ async def stream_job(job_id: int, owner: str = Depends(get_current_owner)):
     )
 
 
+@router.get("/files/view")
+def view_file_by_path(
+    path: str,
+    api_key: str = Query(default=None),
+    x_api_key: str = Header(default=None),
+    owner: str = Depends(get_current_owner),
+):
+    storage_service = get_storage_service()
+    try:
+        response = storage_service.client.get_object(Bucket=storage_service.bucket_name, Key=path)
+        content_type = response.get("ContentType", "application/octet-stream")
+        body = response["Body"]
+        filename = Path(path).name
+        return StreamingResponse(
+            body,
+            media_type=content_type,
+            headers={
+                "Cache-Control": "public, max-age=31536000",
+                "Content-Disposition": f"inline; filename=\"{filename}\"",
+            },
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"File not found: {exc}") from exc
+
+
 @router.get("/health")
 def health_check():
     return {"status": "ok"}

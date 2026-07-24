@@ -34,4 +34,4 @@ def test_validate_upload_file_rejects_unknown_type_and_large_files():
     large_upload = DummyUpload(filename="evil.exe", payload=b"MZ" + b"x" * 1024, content_type="application/x-msdownload")
 
     with pytest.raises(ValueError):
-        _validate_upload_file(large_upload, max_size_bytes=10)
+        _validate_upload_file(large_upload, size=1026, max_size_bytes=10)

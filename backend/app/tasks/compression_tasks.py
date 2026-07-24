@@ -149,6 +149,7 @@ def process_compression_job(job_id: int) -> None:
                 storage_service.upload_local_file(thumbnail_path, thumbnail_storage_path, content_type=thumbnail_content_type)
 
             report = processor.generate_report()
+            report["original_storage_path"] = file_record.storage_path
             report["thumbnail_storage_path"] = thumbnail_storage_path
             report["optimized_storage_path"] = optimized_storage_path
 

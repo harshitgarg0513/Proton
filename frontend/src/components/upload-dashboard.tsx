@@ -331,22 +331,23 @@ export function UploadDashboard() {
     [jobs, selectedJobId],
   );
 
+  const selectedReport = selectedJob?.report_data ?? null;
+  const mediaType = selectedReport?.media_type ?? "unknown";
+
   const chunkJobsTotal =
     typeof selectedJob?.report_data?.chunk_jobs_total === "number"
       ? selectedJob.report_data.chunk_jobs_total
       : typeof selectedReport?.chunk_count === "number"
-        ? selectedReport.chunk_count
-        : 0;
+        ? (selectedReport.chunk_count as number)
+        : chunkJobs.length;
 
   const chunkJobsCompleted =
     typeof selectedJob?.report_data?.chunk_jobs_completed === "number"
       ? selectedJob.report_data.chunk_jobs_completed
-      : 0;
+      : chunkJobs.filter((job) => isTerminalJobStatus(job.status)).length;
 
   const chunkLengthSeconds =
-    typeof selectedReport?.chunk_plan === "object" &&
-    selectedReport?.chunk_plan !== null &&
-    "chunk_length_seconds" in selectedReport.chunk_plan
+    typeof selectedReport?.chunk_plan === "object" && selectedReport?.chunk_plan !== null
       ? Number((selectedReport.chunk_plan as Record<string, unknown>).chunk_length_seconds)
       : null;
 
@@ -355,30 +356,25 @@ export function UploadDashboard() {
       return null;
     }
 
-    const thumbnailPath = selectedReport.thumbnail_storage_path;
-    const optimizedPath = selectedReport.optimized_storage_path;
-    const originalPath = originalPathsByJobId[selectedJob.id];
+    const thumbnailPath = selectedReport.thumbnail_storage_path as string | undefined;
+    const optimizedPath = selectedReport.optimized_storage_path as string | undefined;
+    const originalPath =
+      (selectedReport.original_storage_path as string | undefined) ||
+      originalPathsByJobId[selectedJob.id];
 
-    const originalUrl =
-      typeof originalPath === "string" && originalPath.length > 0
-        ? minioObjectUrl(originalPath)
+    const originalUrl = originalPath ? getObjectUrl(originalPath) : null;
+    const optimizedUrl = thumbnailPath
+      ? getObjectUrl(thumbnailPath)
+      : optimizedPath
+        ? getObjectUrl(optimizedPath)
         : null;
 
-    const optimizedUrl =
-      typeof thumbnailPath === "string" && thumbnailPath.length > 0
-        ? minioObjectUrl(thumbnailPath)
-        : typeof optimizedPath === "string" &&
-            optimizedPath.length > 0 &&
-            (mediaType === "image" || mediaType === "video")
-          ? minioObjectUrl(optimizedPath)
-          : null;
-
-    if (!originalUrl || !optimizedUrl || originalUrl === optimizedUrl) {
+    if (!originalUrl || !optimizedUrl) {
       return null;
     }
 
     return { originalUrl, optimizedUrl };
-  }, [mediaType, originalPathsByJobId, selectedJob, selectedReport]);
+  }, [originalPathsByJobId, selectedJob, selectedReport]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     multiple: false,

@@ -42,9 +42,24 @@ class PdfProcessor(BaseProcessor):
 
         self.output_dir.mkdir(parents=True, exist_ok=True)
         output_path = self.output_dir / f"{Path(self.source_path).stem}.optimized.pdf"
+        thumbnail_path = self.output_dir / f"{Path(self.source_path).stem}_pdf_thumb.png"
+        thumbnail_str: str | None = None
 
         document = fitz.open(self.source_path)
         try:
+            if len(document) > 0:
+                try:
+                    pix = document[0].get_pixmap(dpi=150)
+                    pix.save(str(thumbnail_path))
+                    thumbnail_str = str(thumbnail_path)
+                except Exception:
+                    thumbnail_str = None
+
+            try:
+                document.subset_fonts()
+            except Exception:
+                pass
+
             images_recompressed = self._recompress_images(document)
             self.images_recompressed = images_recompressed
             document.save(str(output_path), **save_options)
@@ -54,6 +69,7 @@ class PdfProcessor(BaseProcessor):
         output_path, optimized_size, optimization_applied = keep_original_if_larger(self.source_path, str(output_path))
 
         self.optimized_path = str(output_path)
+        self.thumbnail_path = thumbnail_str
         self.processing_time = perf_counter() - started_at
         recommendation = {
             **recommendation,
@@ -67,7 +83,7 @@ class PdfProcessor(BaseProcessor):
         }
         return {
             "optimized_path": self.optimized_path,
-            "thumbnail_path": None,
+            "thumbnail_path": self.thumbnail_path,
             "codec_used": None,
             "format_after": "PDF",
             "optimized_size": optimized_size,
