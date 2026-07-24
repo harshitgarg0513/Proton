@@ -6,7 +6,7 @@
   "framework": "nextjs",
   "regions": ["iad1"],
   "env": {
-    "NEXT_PUBLIC_API_BASE_URL": "https://proton-backend-dn83.onrender.com",
+    "NEXT_PUBLIC_API_BASE_URL": "https://proton-backend-production-58fe.up.railway.app",
     "NEXT_PUBLIC_DEMO_API_KEY": "demo-api-key-12345678"
   }
 }

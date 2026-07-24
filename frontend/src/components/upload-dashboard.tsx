@@ -68,8 +68,17 @@ type UploadResponse = {
   job: JobItem;
 };
 
-const rawApiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-const apiBaseUrl = rawApiUrl && rawApiUrl.trim() !== "" ? rawApiUrl : "https://proton-backend-dn83.onrender.com";
+function formatApiBaseUrl(url?: string): string {
+  const defaultUrl = "https://proton-backend-production-58fe.up.railway.app";
+  if (!url || url.trim() === "") return defaultUrl;
+  let trimmed = url.trim().replace(/\/+$/, "");
+  if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
+    trimmed = `https://${trimmed}`;
+  }
+  return trimmed;
+}
+
+const apiBaseUrl = formatApiBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL);
 const minioBrowserBaseUrl =
   process.env.NEXT_PUBLIC_MINIO_BROWSER_BASE_URL ?? "http://localhost:9001/browser/uploads";
 const apiKey = process.env.NEXT_PUBLIC_DEMO_API_KEY ?? "demo-api-key-12345678";
