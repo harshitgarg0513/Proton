@@ -47,7 +47,7 @@ class PdfProcessor(BaseProcessor):
         try:
             images_recompressed = self._recompress_images(document)
             self.images_recompressed = images_recompressed
-            document.ez_save(str(output_path), **save_options)
+            document.save(str(output_path), **save_options)
         finally:
             document.close()
 
@@ -109,6 +109,9 @@ class PdfProcessor(BaseProcessor):
                 except Exception:
                     continue
 
+                if not base_image or "image" not in base_image:
+                    continue
+
                 original_bytes = base_image["image"]
                 if base_image.get("ext") == "jpx":
                     continue
@@ -119,10 +122,9 @@ class PdfProcessor(BaseProcessor):
                 except Exception:
                     continue
 
-                has_alpha = pil_image.mode in ("RGBA", "LA") or "transparency" in pil_image.info
-                if has_alpha:
-                    continue
-                if pil_image.mode not in ("RGB", "L"):
+                if pil_image.mode in ("RGBA", "LA", "P", "CMYK"):
+                    pil_image = pil_image.convert("RGB")
+                elif pil_image.mode not in ("RGB", "L"):
                     pil_image = pil_image.convert("RGB")
 
                 width, height = pil_image.size
@@ -130,7 +132,7 @@ class PdfProcessor(BaseProcessor):
                     scale = max_dim / max(width, height)
                     pil_image = pil_image.resize(
                         (max(1, int(width * scale)), max(1, int(height * scale))),
-                        Image.LANCZOS,
+                        Image.Resampling.LANCZOS,
                     )
 
                 buffer = io.BytesIO()
@@ -154,7 +156,7 @@ class PdfProcessor(BaseProcessor):
         if profile == "smallest_size":
             return {
                 "garbage": 4,
-                "clean": True,
+                "clean": False,
                 "deflate": True,
                 "deflate_images": True,
                 "deflate_fonts": True,
@@ -184,7 +186,7 @@ class PdfProcessor(BaseProcessor):
         if profile == "web_optimized":
             return {
                 "garbage": 4,
-                "clean": True,
+                "clean": False,
                 "deflate": True,
                 "deflate_images": True,
                 "deflate_fonts": True,
@@ -198,7 +200,7 @@ class PdfProcessor(BaseProcessor):
 
         return {
             "garbage": 4,
-            "clean": True,
+            "clean": False,
             "deflate": True,
             "deflate_images": True,
             "deflate_fonts": True,
