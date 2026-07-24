@@ -437,7 +437,12 @@ export function UploadDashboard() {
       }));
       await queryClient.invalidateQueries({ queryKey: ["jobs"] });
       return response.data;
-    } catch {
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        console.error("Upload error detail from backend:", err.response?.data?.detail || err.message);
+      } else {
+        console.error("Upload error:", err);
+      }
       setUploadState("error");
     }
   }

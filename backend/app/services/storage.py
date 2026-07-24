@@ -12,17 +12,21 @@ from app.core.config import get_settings
 class S3StorageService:
     def __init__(self) -> None:
         settings = get_settings()
-        self.bucket_name = settings.storage_bucket
-        endpoint_url = settings.storage_endpoint
+        self.bucket_name = (settings.storage_bucket or "uploads").strip()
+        endpoint_url = (settings.storage_endpoint or "minio:9000").strip()
         if not endpoint_url.startswith("http://") and not endpoint_url.startswith("https://"):
             endpoint_url = f"https://{endpoint_url}" if settings.storage_secure else f"http://{endpoint_url}"
+
+        access_key = (settings.storage_access_key or "").strip()
+        secret_key = (settings.storage_secret_key or "").strip()
+        region = (settings.storage_region or "auto").strip()
 
         self.client = boto3.client(
             's3',
             endpoint_url=endpoint_url,
-            aws_access_key_id=settings.storage_access_key,
-            aws_secret_access_key=settings.storage_secret_key,
-            region_name=settings.storage_region,
+            aws_access_key_id=access_key,
+            aws_secret_access_key=secret_key,
+            region_name=region,
             config=Config(signature_version='s3v4'),
         )
         self.ensure_bucket_exists()

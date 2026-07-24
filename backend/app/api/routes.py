@@ -1,11 +1,14 @@
 import asyncio
 import json
+import logging
 from collections.abc import AsyncIterator
 from typing import Final
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
+
+logger = logging.getLogger(__name__)
 
 from app.core.auth import get_current_owner
 from app.core.config import get_settings
@@ -25,6 +28,8 @@ ALLOWED_UPLOAD_TYPES: Final[set[str]] = {
     "image/png",
     "image/webp",
     "image/avif",
+    "image/gif",
+    "image/svg+xml",
     "application/pdf",
     "video/mp4",
     "video/webm",
@@ -173,8 +178,10 @@ def upload_file(
             "job": job,
         }
     except ValueError as exc:
+        logger.error(f"Upload failed (ValueError/Validation/Boto): {exc}", exc_info=True)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     except Exception as exc:  # noqa: BLE001
+        logger.error(f"Upload failed (Unexpected Exception): {exc}", exc_info=True)
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)) from exc
 
